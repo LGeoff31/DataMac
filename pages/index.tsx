@@ -1,115 +1,209 @@
-import Image from "next/image";
-import { Geist, Geist_Mono } from "next/font/google";
+import React, { useState } from "react";
+import { useRouter } from "next/router";
+import OperationConfigSection from "./components/OperationConfigSection";
+interface Range {
+  min: number;
+  max: number;
+}
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+interface OperationConfig {
+  enabled: boolean;
+  range1: Range;
+  range2: Range;
+}
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+interface GameConfig {
+  addition: OperationConfig;
+  subtraction: OperationConfig;
+  multiplication: OperationConfig;
+  division: OperationConfig;
+  duration: number;
+}
+
+type OperationKey = "addition" | "subtraction" | "multiplication" | "division";
+
+const defaultConfig: GameConfig = {
+  addition: {
+    enabled: true,
+    range1: { min: 2, max: 100 },
+    range2: { min: 2, max: 100 },
+  },
+  subtraction: {
+    enabled: true,
+    range1: { min: 2, max: 100 },
+    range2: { min: 2, max: 100 },
+  },
+  multiplication: {
+    enabled: true,
+    range1: { min: 2, max: 12 },
+    range2: { min: 2, max: 100 },
+  },
+  division: {
+    enabled: true,
+    range1: { min: 2, max: 12 },
+    range2: { min: 2, max: 100 },
+  },
+  duration: 120,
+};
+
+const operationSymbols: Record<string, string> = {
+  addition: "+",
+  subtraction: "−",
+  multiplication: "×",
+  division: "÷",
+};
+
+const operationNames: Record<string, string> = {
+  addition: "Addition",
+  subtraction: "Subtraction",
+  multiplication: "Multiplication",
+  division: "Division",
+};
 
 export default function Home() {
+  const router = useRouter();
+  const [config, setConfig] = useState<GameConfig>(defaultConfig);
+
+  const handleCheckbox = (op: OperationKey) => {
+    setConfig((prev) => ({
+      ...prev,
+      [op]: { ...prev[op], enabled: !prev[op].enabled },
+    }));
+  };
+
+  const handleRange = (
+    op: OperationKey,
+    which: "range1" | "range2",
+    field: "min" | "max",
+    value: number
+  ) => {
+    setConfig((prev) => ({
+      ...prev,
+      [op]: {
+        ...prev[op],
+        [which]: {
+          ...((prev[op] as OperationConfig)[which] || {}),
+          [field]: value,
+        },
+      },
+    }));
+  };
+
+  const handleDuration = (value: number) => {
+    console.log("handleDuration", value);
+    setConfig((prev) => ({ ...prev, duration: value }));
+  };
+
+  const startGame = () => {
+    const params = new URLSearchParams({
+      addEnabled: config.addition.enabled ? "1" : "0",
+      addMin1: config.addition.range1.min.toString(),
+      addMax1: config.addition.range1.max.toString(),
+      addMin2: config.addition.range2?.min.toString() || "",
+      addMax2: config.addition.range2?.max.toString() || "",
+      subEnabled: config.subtraction.enabled ? "1" : "0",
+      subMin: config.subtraction.range1.min.toString(),
+      subMax: config.subtraction.range1.max.toString(),
+      subMin2: config.subtraction.range2?.min.toString() || "",
+      subMax2: config.subtraction.range2?.max.toString() || "",
+      mulEnabled: config.multiplication.enabled ? "1" : "0",
+      mulMin1: config.multiplication.range1.min.toString(),
+      mulMax1: config.multiplication.range1.max.toString(),
+      mulMin2: config.multiplication.range2?.min.toString() || "",
+      mulMax2: config.multiplication.range2?.max.toString() || "",
+      divEnabled: config.division.enabled ? "1" : "0",
+      divMin: config.division.range1.min.toString(),
+      divMax: config.division.range1.max.toString(),
+      divMin2: config.division.range2?.min.toString() || "",
+      divMax2: config.division.range2?.max.toString() || "",
+      duration: config.duration.toString(),
+    });
+    router.push(`/game?${params.toString()}`);
+  };
+
   return (
-    <div
-      className={`${geistSans.className} ${geistMono.className} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
-    >
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              pages/index.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-xl bg-white rounded-xl shadow-lg p-8">
+        <h1 className="text-3xl font-bold text-center mb-8">DataMac</h1>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            startGame();
+          }}
+        >
+          <div className="space-y-6">
+            <OperationConfigSection
+              id="addition"
+              label="Addition"
+              symbol={operationSymbols.addition}
+              config={config.addition}
+              showRange2={true}
+              onEnableChange={() => handleCheckbox("addition")}
+              onRangeChange={(which, field, value) =>
+                handleRange("addition", which, field, value)
+              }
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+            <OperationConfigSection
+              id="subtraction"
+              label="Subtraction"
+              symbol={operationSymbols.subtraction}
+              config={config.subtraction}
+              showRange2={false}
+              onEnableChange={() => handleCheckbox("subtraction")}
+              onRangeChange={(which, field, value) =>
+                handleRange("subtraction", which, field, value)
+              }
+            />
+            <OperationConfigSection
+              id="multiplication"
+              label="Multiplication"
+              symbol={operationSymbols.multiplication}
+              config={config.multiplication}
+              showRange2={true}
+              onEnableChange={() => handleCheckbox("multiplication")}
+              onRangeChange={(which, field, value) =>
+                handleRange("multiplication", which, field, value)
+              }
+            />
+            <OperationConfigSection
+              id="division"
+              label="Divison"
+              symbol={operationSymbols.division}
+              config={config.division}
+              showRange2={true}
+              onEnableChange={() => handleCheckbox("division")}
+              onRangeChange={(which, field, value) =>
+                handleRange("division", which, field, value)
+              }
+            />
+          </div>
+          <div className="flex items-center gap-3 mt-4">
+            <label className="font-medium text-lg" htmlFor="duration">
+              Duration:
+            </label>
+            <select
+              id="duration"
+              className="border rounded px-2 py-1 text-lg"
+              value={config.duration}
+              onChange={(e) => handleDuration(parseInt(e.target.value))}
+            >
+              <option value={30}>30 seconds</option>
+              <option value={60}>60 seconds</option>
+              <option value={90}>90 seconds</option>
+              <option value={120}>120 seconds</option>
+              <option value={180}>180 seconds</option>
+            </select>
+          </div>
+          <div className="mt-8 text-center">
+            <button
+              type="submit"
+              className="bg-blue-600 text-white py-3 px-8 rounded-lg font-semibold hover:bg-blue-700 transition-colors text-lg shadow"
+            >
+              Start Game
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
