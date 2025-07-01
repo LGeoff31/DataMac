@@ -134,7 +134,7 @@ export default function Home() {
           <div className="space-y-6">
             <OperationConfigSection
               id="addition"
-              label="Addition"
+              label={operationNames.addition}
               symbol={operationSymbols.addition}
               config={config.addition}
               showRange2={true}
@@ -145,7 +145,7 @@ export default function Home() {
             />
             <OperationConfigSection
               id="subtraction"
-              label="Subtraction"
+              label={operationNames.subtraction}
               symbol={operationSymbols.subtraction}
               config={config.subtraction}
               showRange2={false}
@@ -156,7 +156,7 @@ export default function Home() {
             />
             <OperationConfigSection
               id="multiplication"
-              label="Multiplication"
+              label={operationNames.multiplication}
               symbol={operationSymbols.multiplication}
               config={config.multiplication}
               showRange2={true}
@@ -167,7 +167,7 @@ export default function Home() {
             />
             <OperationConfigSection
               id="division"
-              label="Divison"
+              label={operationNames.division}
               symbol={operationSymbols.division}
               config={config.division}
               showRange2={true}

@@ -3,7 +3,7 @@ import type { AppProps } from "next/app";
 
 export default function App({
   Component,
-  pageProps: { session, ...pageProps },
+  pageProps: { ...pageProps },
 }: AppProps) {
   return <Component {...pageProps} />;
 }
