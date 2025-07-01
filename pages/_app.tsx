@@ -5,5 +5,9 @@ export default function App({
   Component,
   pageProps: { ...pageProps },
 }: AppProps) {
-  return <Component {...pageProps} />;
+  return (
+    <div className="min-h-screen">
+      <Component {...pageProps} />
+    </div>
+  );
 }
