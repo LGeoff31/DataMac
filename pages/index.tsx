@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useRouter } from "next/router";
-import OperationConfigSection from "./components/OperationConfigSection";
+import OperationConfigSection from "../components/OperationConfigSection";
 interface Range {
   min: number;
   max: number;
