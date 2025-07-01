@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Geist, Geist_Mono } from "next/font/google";
+import { createClient } from "@supabase/supabase-js";
 
 const geist = Geist({ subsets: ["latin"] });
 const geistMono = Geist_Mono({ subsets: ["latin"] });
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 interface Range {
   min: number;
@@ -200,6 +205,17 @@ export default function Game() {
       timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
     } else if (timeLeft === 0 && gameActive) {
       setGameActive(false);
+      // Save score to Supabase when game ends
+      (async () => {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          await supabase
+            .from("scores")
+            .insert([{ user_id: user.id, value: score }]);
+        }
+      })();
     }
     return () => clearTimeout(timer);
   }, [gameActive, timeLeft]);
