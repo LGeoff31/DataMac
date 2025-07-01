@@ -24,6 +24,12 @@ interface GameConfig {
 
 type OperationKey = "addition" | "subtraction" | "multiplication" | "division";
 
+interface UserMetadata {
+  avatar_url?: string;
+  email?: string;
+  name?: string;
+}
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
@@ -71,7 +77,7 @@ export default function Home() {
   const [config, setConfig] = useState<GameConfig>(defaultConfig);
   const [user, setUser] = useState<User | null>(null);
   const [leaderboard, setLeaderboard] = useState<
-    { user_id: string; avg: number; user_metadata?: any }[]
+    { user_id: string; avg: number; user_metadata?: UserMetadata }[]
   >([]);
 
   useEffect(() => {
@@ -110,7 +116,7 @@ export default function Home() {
         .map(([user_id, { total, count }]) => ({
           user_id,
           avg: total / count,
-          user_metadata: null, // We'll show initials instead
+          user_metadata: undefined, // We'll show initials instead
         }))
         .sort((a, b) => b.avg - a.avg);
       setLeaderboard(leaderboardArr);
