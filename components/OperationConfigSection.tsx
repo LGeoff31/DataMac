@@ -1,15 +1,5 @@
 import React from "react";
-
-interface Range {
-  min: number;
-  max: number;
-}
-
-interface OperationConfig {
-  enabled: boolean;
-  range1: Range;
-  range2?: Range;
-}
+import { Range, OperationConfig } from "../types";
 
 interface Props {
   id: string;
@@ -92,7 +82,7 @@ export default function OperationConfigSection({
                 <input
                   type="number"
                   className="w-14 px-1 py-0.5 border rounded"
-                  value={config.range2?.min}
+                  value={config.range2.min}
                   min={-999}
                   max={999}
                   onChange={(e) =>
@@ -107,8 +97,8 @@ export default function OperationConfigSection({
                 <input
                   type="number"
                   className="w-14 px-1 py-0.5 border rounded"
-                  value={config.range2?.max}
-                  min={config.range2?.min}
+                  value={config.range2.max}
+                  min={config.range2.min}
                   max={999}
                   onChange={(e) =>
                     onRangeChange(

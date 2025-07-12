@@ -2,33 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import OperationConfigSection from "../components/OperationConfigSection";
 import { createClient, User } from "@supabase/supabase-js";
-
-interface Range {
-  min: number;
-  max: number;
-}
-
-interface OperationConfig {
-  enabled: boolean;
-  range1: Range;
-  range2: Range;
-}
-
-interface GameConfig {
-  addition: OperationConfig;
-  subtraction: OperationConfig;
-  multiplication: OperationConfig;
-  division: OperationConfig;
-  duration: number;
-}
-
-type OperationKey = "addition" | "subtraction" | "multiplication" | "division";
-
-interface UserMetadata {
-  avatar_url?: string;
-  email?: string;
-  name?: string;
-}
+import {
+  OperationConfig,
+  GameConfig,
+  OperationKey,
+  UserMetadata,
+} from "../types";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;

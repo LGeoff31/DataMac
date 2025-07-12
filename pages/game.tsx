@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Geist, Geist_Mono } from "next/font/google";
 import { createClient } from "@supabase/supabase-js";
+import { GameConfig } from "../types";
 
 const geist = Geist({ subsets: ["latin"] });
 const geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -9,25 +10,6 @@ const geistMono = Geist_Mono({ subsets: ["latin"] });
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-interface Range {
-  min: number;
-  max: number;
-}
-
-interface OperationConfig {
-  enabled: boolean;
-  range1: Range;
-  range2: Range;
-}
-
-interface GameConfig {
-  addition: OperationConfig;
-  subtraction: OperationConfig;
-  multiplication: OperationConfig;
-  division: OperationConfig;
-  duration: number;
-}
 
 interface Problem {
   lhs: number;
