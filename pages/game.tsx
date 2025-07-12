@@ -2,14 +2,22 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Geist, Geist_Mono } from "next/font/google";
 import { createClient } from "@supabase/supabase-js";
-import { GameConfig } from "../types";
+import { Range, OperationConfig, GameConfig } from "../types";
 
 const geist = Geist({ subsets: ["latin"] });
 const geistMono = Geist_Mono({ subsets: ["latin"] });
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create Supabase client function to ensure environment variables are loaded
+const createSupabaseClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey);
+};
 
 interface Problem {
   lhs: number;
@@ -189,6 +197,7 @@ export default function Game() {
       setGameActive(false);
       // Save score to Supabase when game ends
       (async () => {
+        const supabase = createSupabaseClient();
         const {
           data: { user },
         } = await supabase.auth.getUser();

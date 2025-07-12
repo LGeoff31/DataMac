@@ -3,15 +3,24 @@ import { useRouter } from "next/router";
 import OperationConfigSection from "../components/OperationConfigSection";
 import { createClient, User } from "@supabase/supabase-js";
 import {
+  Range,
   OperationConfig,
   GameConfig,
   OperationKey,
   UserMetadata,
 } from "../types";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create Supabase client function to ensure environment variables are loaded
+const createSupabaseClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Missing Supabase environment variables");
+  }
+
+  return createClient(supabaseUrl, supabaseAnonKey);
+};
 
 const defaultConfig: GameConfig = {
   addition: {
@@ -60,6 +69,7 @@ export default function Home() {
   >([]);
 
   useEffect(() => {
+    const supabase = createSupabaseClient();
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
     });
@@ -76,6 +86,7 @@ export default function Home() {
 
   useEffect(() => {
     (async () => {
+      const supabase = createSupabaseClient();
       const { data, error } = await supabase
         .from("scores")
         .select("user_id, value");
@@ -103,10 +114,12 @@ export default function Home() {
   }, []);
 
   const signInWithGoogle = async () => {
+    const supabase = createSupabaseClient();
     await supabase.auth.signInWithOAuth({ provider: "google" });
   };
 
   const signOut = async () => {
+    const supabase = createSupabaseClient();
     await supabase.auth.signOut();
     setUser(null);
   };
@@ -142,6 +155,7 @@ export default function Home() {
   };
 
   const startGame = () => {
+    const supabase = createSupabaseClient();
     const params = new URLSearchParams({
       addEnabled: config.addition.enabled ? "1" : "0",
       addMin1: config.addition.range1.min.toString(),
