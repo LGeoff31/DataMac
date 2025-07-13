@@ -197,14 +197,20 @@ export default function Game() {
       setGameActive(false);
       // Save score to Supabase when game ends
       (async () => {
+        console.log("Saving score to Supabase");
         const supabase = createSupabaseClient();
         const {
           data: { user },
         } = await supabase.auth.getUser();
+        console.log("user", user?.user_metadata?.avatar_url, score);
         if (user) {
-          await supabase
-            .from("scores")
-            .insert([{ user_id: user.id, value: score }]);
+          await supabase.from("scores").insert([
+            {
+              user_id: user.id,
+              value: score,
+              avatar_url: user.user_metadata?.avatar_url,
+            },
+          ]);
         }
       })();
     }
