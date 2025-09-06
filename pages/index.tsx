@@ -121,7 +121,7 @@ export default function Home() {
       </div>
 
       <div className="relative z-10 min-h-screen p-4">
-        <div className="absolute top-4 left-4 z-20">
+        <div className="absolute top-4 left-12 z-20">
           {user ? (
             <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-3">
               {user.user_metadata?.avatar_url ? (
@@ -177,7 +177,7 @@ export default function Home() {
           )}
         </div>
 
-        <div className="absolute top-4 right-4 z-20">
+        <div className="absolute top-4 right-12 z-20">
           {user ? (
             <button
               onClick={() => router.push("/dashboard")}
@@ -203,7 +203,7 @@ export default function Home() {
 
         <div className="flex items-center justify-center min-h-screen">
           <div className="w-full max-w-2xl">
-            <div className="text-center mb-12 animate-fade-in">
+            <div className="text-center mb-4 animate-fade-in">
               <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-4 animate-slide-down">
                 DataMac
               </h1>
@@ -212,7 +212,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="text-center mb-8 animate-fade-in animation-delay-450">
+            <div className="text-center mb-4 animate-fade-in animation-delay-450">
               <button
                 onClick={() => router.push("/leaderboard")}
                 className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 mx-auto"

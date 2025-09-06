@@ -272,8 +272,7 @@ const Dashboard = () => {
       </div>
 
       <div className="relative z-10 min-h-screen p-4">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-center items-center mb-8">
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push("/")}
@@ -299,7 +298,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* User Info */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6 mb-8">
           <div className="flex items-center gap-4">
             {user.user_metadata?.avatar_url ? (
@@ -326,7 +324,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6">
             <div className="flex items-center justify-between">
@@ -375,10 +372,8 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Line Chart */}
         {scores.length > 0 && <LineChart data={chartData} />}
 
-        {/* All Games */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6">
           <h3 className="text-xl font-bold text-gray-800 mb-4">All Games</h3>
           {scores.length === 0 ? (
