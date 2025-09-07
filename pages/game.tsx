@@ -414,84 +414,168 @@ export default function Game() {
   }
 
   return (
-    <div className={`min-h-screen bg-gray-50 ${geist.className}`}>
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <div className="text-center mb-6">
-              <div className="text-2xl font-bold text-gray-800 mb-2">
-                Time: {timeLeft}s
-              </div>
-              <div className="text-lg text-gray-600 mb-4">Score: {score}</div>
+    <div className={`min-h-screen bg-slate-900 text-white ${geist.className}`}>
+      {/* Header */}
+      <div className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex justify-between items-center w-full">
+            {/* Left: Empty space */}
+            <div></div>
+            
+            {/* Middle: Navigation Links */}
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={() => router.push("/")}
+                className="w-32 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 border border-slate-600 hover:border-slate-500"
+              >
+                <span className="text-lg">🏠</span>
+                <span>Home</span>
+              </button>
+              <button
+                onClick={() => router.push("/leaderboard")}
+                className="w-32 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 border border-slate-600 hover:border-slate-500"
+              >
+                <span className="text-lg">🏆</span>
+                <span>Leaderboard</span>
+              </button>
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="w-32 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 border border-slate-600 hover:border-slate-500"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                <span>Dashboard</span>
+              </button>
+            </div>
+            
+            {/* Right: Empty space */}
+            <div></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main game area */}
+      <div className="container mx-auto px-6 py-8">
+        <div className="max-w-2xl mx-auto">
+          {/* Voice controls */}
+          <div className="mb-8 animate-slide-in-down">
+            <div className="flex items-center justify-center space-x-4">
+              <button
+                onClick={toggleVoiceRecognition}
+                className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 animate-zoom-in hover-bounce ${
+                  voiceEnabled
+                    ? isListening
+                      ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse-glow'
+                      : 'bg-green-500 hover:bg-green-600 text-white'
+                    : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                }`}
+                style={{ animationDelay: "0.2s" }}
+              >
+                <span className="text-lg animate-pulse">
+                  {voiceEnabled ? (isListening ? '🎤' : '🔇') : '🎤'}
+                </span>
+                <span>{voiceEnabled ? (isListening ? 'Listening...' : 'Voice On') : 'Voice Off'}</span>
+              </button>
               
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <button
-                  onClick={toggleVoiceRecognition}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 flex items-center gap-2 ${
-                    voiceEnabled
-                      ? isListening
-                        ? 'bg-red-500 hover:bg-red-600 text-white'
-                        : 'bg-green-500 hover:bg-green-600 text-white'
-                      : 'bg-gray-500 hover:bg-gray-600 text-white'
-                  }`}
-                >
-                  <span className="text-lg">
-                    {voiceEnabled ? (isListening ? '🎤' : '🔇') : '🎤'}
-                  </span>
-                  {voiceEnabled ? (isListening ? 'Listening...' : 'Voice On') : 'Voice Off'}
-                </button>
-                
-                {lastVoiceResult && (
-                  <div className="text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded">
-                    Heard: "{lastVoiceResult}"
-                  </div>
-                )}
+              {lastVoiceResult && (
+                <div className="bg-slate-800 rounded-lg px-4 py-2 text-sm text-slate-300 animate-bounce-in animate-shake">
+                  Heard: "{lastVoiceResult}"
+                </div>
+              )}
+            </div>
+            
+            <p className="text-center text-slate-400 text-sm mt-2 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+              {voiceEnabled 
+                ? "Speak the answer to automatically advance!" 
+                : "Click the microphone to enable voice recognition"
+              }
+            </p>
+          </div>
+
+          {/* Game Stats */}
+          {gameActive && (
+            <div className="flex justify-center items-center space-x-6 mb-8 animate-slide-in-up" style={{ animationDelay: "0.5s" }}>
+              <div className="flex items-center space-x-2 bg-slate-800/50 backdrop-blur-sm rounded-xl px-6 py-3 border border-slate-700 hover:border-red-500/50 transition-all duration-200 group">
+                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse group-hover:animate-bounce"></div>
+                <span className="text-lg font-bold text-red-400">Time: {timeLeft}s</span>
               </div>
-              
-              <div className="text-sm text-gray-500 mb-2">
-                {voiceEnabled 
-                  ? "Speak the answer to automatically advance!" 
-                  : "Click the microphone to enable voice recognition"
-                }
+              <div className="flex items-center space-x-2 bg-slate-800/50 backdrop-blur-sm rounded-xl px-6 py-3 border border-slate-700 hover:border-blue-500/50 transition-all duration-200 group">
+                <span className="text-lg font-bold text-blue-400">Score: {score}</span>
               </div>
             </div>
+          )}
 
-            {gameActive && currentProblem ? (
-              <div className="text-center mb-6">
-                <div className="text-4xl font-bold text-gray-800 mb-4">
-                  {currentProblem.lhs} {currentProblem.operation}{" "}
-                  {currentProblem.rhs} = ?
+          {/* Game content */}
+          {gameActive && currentProblem ? (
+            <div className="text-center">
+              {/* Problem display */}
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-12 mb-8 border border-slate-700">
+                <div className="text-6xl md:text-7xl font-bold mb-8">
+                  <span className="text-blue-400">{currentProblem.lhs}</span>
+                  <span className="mx-6 text-slate-300">{currentProblem.operation}</span>
+                  <span className="text-purple-400">{currentProblem.rhs}</span>
+                  <span className="mx-6 text-slate-300">=</span>
+                  <span className="text-cyan-400">?</span>
                 </div>
+              </div>
 
-                <form onSubmit={handleSubmit}>
+              {/* Answer input */}
+              <form onSubmit={handleSubmit} className="mb-8">
+                <div className="relative max-w-md mx-auto">
                   <input
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
                     value={userAnswer}
                     onChange={handleAnswerChange}
-                    className={`w-full text-center text-3xl font-bold py-4 px-6 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 ${geistMono.className}`}
+                    className={`w-full text-center text-4xl font-bold py-6 px-8 bg-slate-800 border-2 border-slate-600 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 ${geistMono.className}`}
                     autoFocus
+                    placeholder="?"
                   />
-                </form>
+                </div>
+              </form>
+
+              {/* Progress indicator */}
+              <div className="flex justify-center space-x-2 animate-slide-in-up" style={{ animationDelay: "1.6s" }}>
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                      i < Math.min(score, 5) ? 'bg-green-500 animate-pulse-glow' : 'bg-slate-700'
+                    }`}
+                    style={{ animationDelay: `${1.8 + i * 0.1}s` }}
+                  />
+                ))}
               </div>
-            ) : (
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            </div>
+          ) : (
+            /* Game over screen */
+            <div className="text-center">
+              <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl p-12 border border-slate-700 animate-bounce-in">
+                <div className="text-6xl mb-6 animate-float-up">🎉</div>
+                <h2 className="text-4xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent animate-slide-in-up" style={{ animationDelay: "0.2s" }}>
                   Game Over!
                 </h2>
-                <div className="text-lg text-gray-600 mb-4">
-                  Final Score: {score}
+                <div className="text-6xl font-bold text-cyan-400 mb-8 animate-zoom-in animate-pulse-glow" style={{ animationDelay: "0.4s" }}>
+                  {score}
                 </div>
+                <p className="text-slate-400 text-lg mb-8 animate-slide-in-up" style={{ animationDelay: "0.6s" }}>
+                  Great job! You completed {totalProblems} problems.
+                </p>
                 <button
                   onClick={() => router.push("/")}
-                  className="bg-blue-600 text-white py-2 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 animate-zoom-in hover-bounce"
+                  style={{ animationDelay: "0.8s" }}
                 >
-                  Back
+                  <span className="flex items-center gap-2">
+                    <span className="animate-pulse">🎮</span>
+                    Play Again
+                  </span>
                 </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

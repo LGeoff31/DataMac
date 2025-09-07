@@ -21,164 +21,208 @@ const LineChart = ({ data }: { data: { date: string; score: number }[] }) => {
   const scoreRange = maxScore - minScore || 1;
 
   const chartWidth = Math.max(600, data.length * 80);
-  const chartHeight = 300;
+  const chartHeight = 400;
   const padding = 60;
   const graphWidth = chartWidth - padding * 2;
   const graphHeight = chartHeight - padding * 2;
 
+  // Create the path data for the line
+  const pathData = data
+    .map((d, i) => {
+      const x = padding + (i * graphWidth) / (data.length - 1);
+      const y =
+        padding +
+        graphHeight -
+        ((d.score - minScore) / scoreRange) * graphHeight;
+      return `${i === 0 ? "M" : "L"} ${x} ${y}`;
+    })
+    .join(" ");
+
+  // Calculate the total path length for animation
+  const pathLength = data.reduce((total, d, i) => {
+    if (i === 0) return 0;
+    const prevX = padding + ((i - 1) * graphWidth) / (data.length - 1);
+    const prevY =
+      padding +
+      graphHeight -
+      ((data[i - 1].score - minScore) / scoreRange) * graphHeight;
+    const currX = padding + (i * graphWidth) / (data.length - 1);
+    const currY =
+      padding +
+      graphHeight -
+      ((d.score - minScore) / scoreRange) * graphHeight;
+    const distance = Math.sqrt(
+      Math.pow(currX - prevX, 2) + Math.pow(currY - prevY, 2)
+    );
+    return total + distance;
+  }, 0);
+
   return (
-    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6 mb-8">
-      <h3 className="text-xl font-bold text-gray-800 mb-4">Score Progress</h3>
-      <div className="relative h-80 overflow-x-auto">
-        <svg
-          className="w-full h-full min-w-full"
-          viewBox={`0 0 ${chartWidth} ${chartHeight}`}
-          style={{ minWidth: `${chartWidth}px` }}
-        >
-          {[0, 1, 2, 3, 4].map((i) => (
-            <line
-              key={i}
-              x1={padding}
-              y1={padding + (i * graphHeight) / 4}
-              x2={chartWidth - padding}
-              y2={padding + (i * graphHeight) / 4}
-              stroke="#e5e7eb"
-              strokeWidth="1"
-            />
-          ))}
+    <div className="relative h-full overflow-x-auto">
+      <svg
+        className="w-full h-full min-w-full"
+        viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+        style={{ minWidth: `${chartWidth}px` }}
+      >
+        <defs>
+          <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#8b5cf6" />
+          </linearGradient>
+          <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+          </linearGradient>
+        </defs>
 
-          {[0, 1, 2, 3, 4].map((i) => {
-            const scoreValue = minScore + (scoreRange * i) / 4;
-            return (
-              <g key={i}>
-                <line
-                  x1={padding}
-                  y1={padding + (i * graphHeight) / 4}
-                  x2={padding - 5}
-                  y2={padding + (i * graphHeight) / 4}
-                  stroke="#9ca3af"
-                  strokeWidth="1"
-                />
-                <text
-                  x={padding - 10}
-                  y={padding + (i * graphHeight) / 4 + 4}
-                  textAnchor="end"
-                  className="text-xs fill-gray-600"
-                >
-                  {Math.round(scoreValue)}
-                </text>
-              </g>
-            );
-          })}
-
+        {/* Grid lines */}
+        {[0, 1, 2, 3, 4].map((i) => (
           <line
+            key={i}
             x1={padding}
-            y1={chartHeight - padding}
+            y1={padding + (i * graphHeight) / 4}
             x2={chartWidth - padding}
-            y2={chartHeight - padding}
-            stroke="#9ca3af"
-            strokeWidth="2"
+            y2={padding + (i * graphHeight) / 4}
+            stroke="#374151"
+            strokeWidth="1"
           />
+        ))}
 
-          <line
-            x1={padding}
-            y1={padding}
-            x2={padding}
-            y2={chartHeight - padding}
-            stroke="#9ca3af"
-            strokeWidth="2"
-          />
+        {/* Y-axis labels */}
+        {[0, 1, 2, 3, 4].map((i) => {
+          const scoreValue = minScore + (scoreRange * i) / 4;
+          return (
+            <g key={i}>
+              <line
+                x1={padding}
+                y1={padding + (i * graphHeight) / 4}
+                x2={padding - 5}
+                y2={padding + (i * graphHeight) / 4}
+                stroke="#6b7280"
+                strokeWidth="1"
+              />
+              <text
+                x={padding - 10}
+                y={padding + (i * graphHeight) / 4 + 4}
+                textAnchor="end"
+                className="text-xs fill-slate-400"
+              >
+                {Math.round(scoreValue)}
+              </text>
+            </g>
+          );
+        })}
 
-          <polyline
-            fill="none"
-            stroke="#3b82f6"
-            strokeWidth="3"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            points={data
-              .map((d, i) => {
-                const x = padding + (i * graphWidth) / (data.length - 1);
-                const y =
-                  padding +
-                  graphHeight -
-                  ((d.score - minScore) / scoreRange) * graphHeight;
-                return `${x},${y}`;
-              })
-              .join(" ")}
-          />
+        {/* X-axis */}
+        <line
+          x1={padding}
+          y1={chartHeight - padding}
+          x2={chartWidth - padding}
+          y2={chartHeight - padding}
+          stroke="#6b7280"
+          strokeWidth="2"
+        />
 
-          {data.map((d, i) => {
-            const x = padding + (i * graphWidth) / (data.length - 1);
-            const y =
-              padding +
-              graphHeight -
-              ((d.score - minScore) / scoreRange) * graphHeight;
-            return (
-              <g key={i}>
-                <circle
-                  cx={x}
-                  cy={y}
-                  r="5"
-                  fill="#3b82f6"
-                  stroke="white"
-                  strokeWidth="2"
-                />
-                <text
-                  x={x}
-                  y={y - 10}
-                  textAnchor="middle"
-                  className="text-xs fill-gray-700 font-medium"
-                >
-                  {d.score}
-                </text>
-              </g>
-            );
-          })}
+        {/* Y-axis */}
+        <line
+          x1={padding}
+          y1={padding}
+          x2={padding}
+          y2={chartHeight - padding}
+          stroke="#6b7280"
+          strokeWidth="2"
+        />
 
-          {data.map((d, i) => {
-            const x = padding + (i * graphWidth) / (data.length - 1);
-            return (
-              <g key={i}>
-                <line
-                  x1={x}
-                  y1={chartHeight - padding}
-                  x2={x}
-                  y2={chartHeight - padding + 5}
-                  stroke="#9ca3af"
-                  strokeWidth="1"
-                />
-                <text
-                  x={x}
-                  y={chartHeight - padding + 20}
-                  textAnchor="middle"
-                  className="text-xs fill-gray-600"
-                  transform={`rotate(-45 ${x} ${chartHeight - padding + 20})`}
-                >
-                  {d.date}
-                </text>
-              </g>
-            );
-          })}
+        {/* Area under the curve */}
+        <path
+          d={`${pathData} L ${padding + graphWidth} ${chartHeight - padding} L ${padding} ${chartHeight - padding} Z`}
+          fill="url(#areaGradient)"
+        />
 
-          <text
-            x={chartWidth / 2}
-            y={chartHeight - 10}
-            textAnchor="middle"
-            className="text-sm fill-gray-700 font-medium"
-          >
-            Date
-          </text>
-          <text
-            x={10}
-            y={chartHeight / 2}
-            textAnchor="middle"
-            className="text-sm fill-gray-700 font-medium"
-            transform={`rotate(-90 10 ${chartHeight / 2})`}
-          >
-            Score
-          </text>
-        </svg>
-      </div>
+        {/* Data line */}
+        <path
+          d={pathData}
+          fill="none"
+          stroke="url(#lineGradient)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* Data points */}
+        {data.map((d, i) => {
+          const x = padding + (i * graphWidth) / (data.length - 1);
+          const y =
+            padding +
+            graphHeight -
+            ((d.score - minScore) / scoreRange) * graphHeight;
+          return (
+            <g key={i}>
+              <circle
+                cx={x}
+                cy={y}
+                r="5"
+                fill="#3b82f6"
+                stroke="#1e293b"
+                strokeWidth="2"
+              />
+              <text
+                x={x}
+                y={y - 10}
+                textAnchor="middle"
+                className="text-xs fill-slate-300 font-medium"
+              >
+                {d.score}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* X-axis labels */}
+        {data.map((d, i) => {
+          const x = padding + (i * graphWidth) / (data.length - 1);
+          return (
+            <g key={i}>
+              <line
+                x1={x}
+                y1={chartHeight - padding}
+                x2={x}
+                y2={chartHeight - padding + 5}
+                stroke="#6b7280"
+                strokeWidth="1"
+              />
+              <text
+                x={x}
+                y={chartHeight - padding + 20}
+                textAnchor="middle"
+                className="text-xs fill-slate-400"
+                transform={`rotate(-45 ${x} ${chartHeight - padding + 20})`}
+              >
+                {d.date}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Axis labels */}
+        <text
+          x={chartWidth / 2}
+          y={chartHeight - 10}
+          textAnchor="middle"
+          className="text-sm fill-slate-300 font-medium"
+        >
+          Date
+        </text>
+        <text
+          x={10}
+          y={chartHeight / 2}
+          textAnchor="middle"
+          className="text-sm fill-slate-300 font-medium"
+          transform={`rotate(-90 10 ${chartHeight / 2})`}
+        >
+          Score
+        </text>
+      </svg>
     </div>
   );
 };
@@ -264,190 +308,149 @@ const Dashboard = () => {
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000"></div>
-        <div className="absolute top-40 left-40 w-80 h-80 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
-      </div>
-
-      <div className="relative z-10 min-h-screen p-4">
-        <div className="flex justify-center items-center mb-8">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push("/")}
-              className="bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-3 hover:bg-white/90 transition-all duration-200"
-            >
-              <svg
-                className="w-6 h-6 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Dashboard
-            </h1>
-          </div>
-        </div>
-
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6 mb-8">
-          <div className="flex items-center gap-4">
-            {user.user_metadata?.avatar_url ? (
-              <img
-                src={user.user_metadata.avatar_url}
-                alt="Profile"
-                className="w-16 h-16 rounded-full ring-4 ring-blue-200"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 flex items-center justify-center ring-4 ring-blue-200">
-                <span className="text-white font-bold text-2xl">
-                  {user.email?.charAt(0).toUpperCase()}
-                </span>
-              </div>
-            )}
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800">
-                {user.user_metadata?.full_name ||
-                  user.user_metadata?.name ||
-                  user.email?.split("@")[0]}
-              </h2>
-              <p className="text-gray-600">{user.email}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Games</p>
-                <p className="text-3xl font-bold text-gray-800">
-                  {scores.length}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <span className="text-2xl">🎮</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Average Score
-                </p>
-                <p className="text-3xl font-bold text-gray-800">
-                  {averageScore.toFixed(0)}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <span className="text-2xl">📊</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Best Score</p>
-                <p className="text-3xl font-bold text-gray-800">
-                  {scores.length > 0
-                    ? Math.max(...scores.map((s) => s.value))
-                    : 0}
-                </p>
-              </div>
-              <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                <span className="text-2xl">🏆</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {scores.length > 0 && <LineChart data={chartData} />}
-
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">All Games</h3>
-          {scores.length === 0 ? (
-            <div className="text-center py-8">
-              <div className="text-6xl mb-4">🎯</div>
-              <p className="text-gray-600 text-lg">No games played yet</p>
+    <div className="min-h-screen bg-slate-900 text-white">
+      {/* Header */}
+      <div className="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex justify-between items-center w-full">
+            {/* Left: Empty space */}
+            <div></div>
+            
+            {/* Middle: Navigation Links */}
+            <div className="flex items-center space-x-4">
               <button
                 onClick={() => router.push("/")}
-                className="mt-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
+                className="w-32 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 border border-slate-600 hover:border-slate-500"
               >
-                Play Your First Game
+                <span className="text-lg">🏠</span>
+                <span>Home</span>
+              </button>
+              <button
+                onClick={() => router.push("/leaderboard")}
+                className="w-32 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 border border-slate-600 hover:border-slate-500"
+              >
+                <span className="text-lg">🏆</span>
+                <span>Leaderboard</span>
+              </button>
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="w-32 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 border border-blue-500"
+              >
+                <span className="text-lg">📊</span>
+                <span>Dashboard</span>
               </button>
             </div>
-          ) : (
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {scores.map((score, index) => (
-                <div
-                  key={score.id || index}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
+            
+            {/* Right: User Profile */}
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2 bg-slate-800 rounded-lg p-2 hover:bg-slate-700 transition-colors">
+                {user.user_metadata?.avatar_url ? (
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt="Profile"
+                    className="w-8 h-8 rounded-full"
+                  />
+                ) : (
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">
+                      {user.email?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+                <button
+                  onClick={() => {
+                    const supabase = createSupabaseClient();
+                    supabase.auth.signOut();
+                    router.push("/");
+                  }}
+                  className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-400/10 transition-colors"
+                  title="Sign out"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-bold text-blue-600">
-                        #{index + 1}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-800">
-                        Score: {score.value}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {new Date(score.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-gray-800">
-                      {score.value}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
-      <style jsx>{`
-        @keyframes blob {
-          0% {
-            transform: translate(0px, 0px) scale(1);
-          }
-          33% {
-            transform: translate(30px, -50px) scale(1.1);
-          }
-          66% {
-            transform: translate(-20px, 20px) scale(0.9);
-          }
-          100% {
-            transform: translate(0px, 0px) scale(1);
-          }
-        }
-        .animate-blob {
-          animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-          animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-          animation-delay: 4s;
-        }
-      `}</style>
+      {/* Main content */}
+      <div className="container mx-auto px-6 py-8">
+
+
+        {/* Stats grid */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 hover:border-blue-500/50 transition-all duration-200 animate-slide-in-up hover-bounce group" style={{ animationDelay: "0.6s" }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-sm font-medium group-hover:animate-shake">Total Games</p>
+                <p className="text-3xl font-bold text-blue-400 animate-pulse-glow">{scores.length}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:animate-morph">
+                <span className="text-2xl animate-pulse">🎮</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 hover:border-green-500/50 transition-all duration-200 animate-slide-in-up hover-bounce group" style={{ animationDelay: "0.8s" }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-sm font-medium group-hover:animate-shake">Average Score</p>
+                <p className="text-3xl font-bold text-green-400 animate-pulse-glow">{averageScore.toFixed(0)}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:animate-morph">
+                <span className="text-2xl animate-pulse">📊</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 hover:border-yellow-500/50 transition-all duration-200 animate-slide-in-up hover-bounce group" style={{ animationDelay: "1s" }}>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-slate-400 text-sm font-medium group-hover:animate-shake">Best Score</p>
+                <p className="text-3xl font-bold text-yellow-400 animate-pulse-glow">
+                  {scores.length > 0 ? Math.max(...scores.map((s) => s.value)) : 0}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-yellow-500/20 rounded-lg flex items-center justify-center group-hover:animate-morph">
+                <span className="text-2xl animate-pulse">🏆</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Chart section */}
+        {scores.length > 0 ? (
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 h-[calc(100vh-20rem)]">
+            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
+              📈 Progress Chart
+              <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            </h3>
+            <div className="h-[calc(100%-4rem)]">
+              <LineChart data={chartData} />
+            </div>
+          </div>
+        ) : (
+          <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 h-[calc(100vh-20rem)] flex items-center justify-center">
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🎯</div>
+              <p className="text-slate-400 text-lg mb-6">No games played yet</p>
+              <button
+                onClick={() => router.push("/")}
+                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-lg font-medium transition-all duration-200 transform hover:scale-105"
+              >
+                Start Your First Game
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };
 
 export default Dashboard;
+
