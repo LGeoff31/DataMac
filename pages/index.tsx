@@ -38,10 +38,208 @@ const defaultConfig = {
   duration: 120,
 };
 
+const ScoreHistogram = ({ scores, userScore }: { scores: number[]; userScore: number | null | undefined }) => {
+  if (scores.length === 0) return null;
+
+  const minScore = Math.min(...scores);
+  const maxScore = Math.max(...scores);
+  const range = maxScore - minScore || 1; // Avoid division by zero
+  const numBins = Math.min(30, Math.max(10, Math.floor(Math.sqrt(scores.length) * 2)));
+  const binWidth = range / numBins || 1;
+
+  // Create bins
+  const bins: number[] = new Array(numBins).fill(0);
+  scores.forEach((score) => {
+    const binIndex = Math.min(
+      Math.floor((score - minScore) / binWidth),
+      numBins - 1
+    );
+    bins[binIndex]++;
+  });
+
+  const maxCount = Math.max(...bins);
+  const height = 400;
+  const padding = 50;
+  const width = 1200; // Base width for calculations
+
+  // Create line path points
+  const points: string[] = [];
+  bins.forEach((count, index) => {
+    const x = padding + ((index / (numBins - 1)) * (width - padding * 2));
+    const y = height - padding - ((count / maxCount) * (height - padding * 2));
+    points.push(`${x} ${y}`);
+  });
+
+  // Create area path (for filled area under line)
+  const areaPath = `M ${padding} ${height - padding} ${points.join(' L ')} L ${width - padding} ${height - padding} Z`;
+
+  // Create line path
+  const linePath = `M ${points.join(' L ')}`;
+
+  // Find user score position
+  const userScoreX = userScore !== null && userScore !== undefined && range > 0
+    ? padding + (((userScore - minScore) / range) * (width - padding * 2))
+    : null;
+
+  return (
+    <div className="w-full">
+      <svg width="100%" height={height + 60} className="overflow-visible" viewBox={`0 0 ${width} ${height + 60}`} preserveAspectRatio="none">
+        {/* Grid lines */}
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+          const y = height - padding - (ratio * (height - padding * 2));
+          return (
+            <line
+              key={ratio}
+              x1={padding}
+              y1={y}
+              x2={width - padding}
+              y2={y}
+              stroke="#334155"
+              strokeWidth="0.5"
+              opacity="0.3"
+            />
+          );
+        })}
+
+        {/* Filled area under line */}
+        <path
+          d={areaPath}
+          fill="url(#gradient)"
+          opacity="0.3"
+        />
+        <defs>
+          <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.1" />
+          </linearGradient>
+        </defs>
+
+        {/* Line */}
+        <path
+          d={linePath}
+          fill="none"
+          stroke="#3b82f6"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+
+        {/* User score vertical line */}
+        {userScoreX !== null && (
+          <line
+            x1={userScoreX}
+            y1={padding}
+            x2={userScoreX}
+            y2={height - padding}
+            stroke="#60a5fa"
+            strokeWidth="2"
+            strokeDasharray="4 4"
+            opacity="0.8"
+          />
+        )}
+
+        {/* User score dot */}
+        {userScoreX !== null && userScore !== null && userScore !== undefined && range > 0 && (
+          (() => {
+            const userBinIndex = Math.min(
+              Math.floor((userScore - minScore) / binWidth),
+              numBins - 1
+            );
+            const userCount = bins[userBinIndex];
+            const userY = height - padding - ((userCount / maxCount) * (height - padding * 2));
+            return (
+              <circle
+                cx={userScoreX}
+                cy={userY}
+                r="4"
+                fill="#60a5fa"
+                stroke="#1e40af"
+                strokeWidth="2"
+              />
+            );
+          })()
+        )}
+
+        {/* X-axis */}
+        <line
+          x1={padding}
+          y1={height - padding}
+          x2={width - padding}
+          y2={height - padding}
+          stroke="#475569"
+          strokeWidth="2"
+        />
+
+        {/* Y-axis */}
+        <line
+          x1={padding}
+          y1={padding}
+          x2={padding}
+          y2={height - padding}
+          stroke="#475569"
+          strokeWidth="2"
+        />
+
+        {/* X-axis labels */}
+        {[0, 0.25, 0.5, 0.75, 1].map((ratio) => {
+          const score = minScore + (ratio * range);
+          const x = padding + (ratio * (width - padding * 2));
+          return (
+            <text
+              key={ratio}
+              x={x}
+              y={height - padding + 15}
+              textAnchor="middle"
+              className="text-xs fill-slate-400"
+              fontSize="10"
+            >
+              {Math.round(score)}
+            </text>
+          );
+        })}
+
+        {/* Y-axis labels */}
+        {[0, 0.5, 1].map((ratio) => {
+          const count = Math.round(ratio * maxCount);
+          const y = height - padding - (ratio * (height - padding * 2));
+          return (
+            <text
+              key={ratio}
+              x={padding - 5}
+              y={y + 3}
+              textAnchor="end"
+              className="text-xs fill-slate-400"
+              fontSize="9"
+            >
+              {count}
+            </text>
+          );
+        })}
+      </svg>
+      <div className="flex justify-between text-xs text-slate-400 mt-2 px-2">
+        <span>{Math.round(minScore)}</span>
+        <span className="text-slate-500">Score Distribution</span>
+        <span>{Math.round(maxScore)}</span>
+      </div>
+    </div>
+  );
+};
+
 export default function Home() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [leaderboard, setLeaderboard] = useState<
+    {
+      user_id: string;
+      avg: number;
+      highScore: number;
+      avatar_url: string;
+      user_name: string;
+    }[]
+  >([]);
+  const [userRank, setUserRank] = useState<number | null>(null);
+  const [userPercentile, setUserPercentile] = useState<number | null>(null);
 
   useEffect(() => {
     const supabase = createSupabaseClient();
@@ -59,6 +257,83 @@ export default function Home() {
       listener?.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    const supabase = createSupabaseClient();
+    
+    // Fetch leaderboard data
+    const fetchLeaderboard = async () => {
+      const { data, error } = await supabase.from("scores").select(`
+        user_id, 
+        value,
+        avatar_url
+      `);
+
+      if (!data || error) {
+        return;
+      }
+
+      // Calculate averages and high scores
+      const userScores: Record<
+        string,
+        {
+          total: number;
+          count: number;
+          highScore: number;
+          avatar_url: string;
+          user_name: string;
+        }
+      > = {};
+
+      for (const row of data) {
+        if (!userScores[row.user_id]) {
+          userScores[row.user_id] = {
+            total: 0,
+            count: 0,
+            highScore: 0,
+            avatar_url: row.avatar_url,
+            user_name: ``,
+          };
+        }
+        userScores[row.user_id].total += row.value;
+        userScores[row.user_id].count += 1;
+        userScores[row.user_id].highScore = Math.max(
+          userScores[row.user_id].highScore,
+          row.value
+        );
+      }
+
+      const leaderboardArr = Object.entries(userScores)
+        .map(([user_id, { total, count, highScore, avatar_url, user_name }]) => ({
+          user_id,
+          avg: total / count,
+          highScore,
+          avatar_url,
+          user_name,
+        }))
+        .sort((a, b) => b.highScore - a.highScore);
+
+      setLeaderboard(leaderboardArr);
+
+      // Calculate user rank and percentile if logged in
+      if (user) {
+        const userIndex = leaderboardArr.findIndex((entry) => entry.user_id === user.id);
+        if (userIndex !== -1) {
+          setUserRank(userIndex + 1);
+          const percentile = ((leaderboardArr.length - userIndex) / leaderboardArr.length) * 100;
+          setUserPercentile(percentile);
+        } else {
+          setUserRank(null);
+          setUserPercentile(null);
+        }
+      } else {
+        setUserRank(null);
+        setUserPercentile(null);
+      }
+    };
+
+    fetchLeaderboard();
+  }, [user]);
 
   const signInWithGoogle = async () => {
     const supabase = createSupabaseClient();
@@ -159,108 +434,65 @@ export default function Home() {
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 container mx-auto px-6 pt-24 pb-12">
-        <div className="max-w-4xl mx-auto">
+      <div className="relative z-10 container mx-auto px-6 pt-16 pb-12">
+        <div className="max-w-7xl mx-auto">
           {/* Hero section */}
-          <div className="text-center mb-16">
-            <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent animate-bounce-in">
+          <div className="text-center mb-8">
+            <h1 className="text-6xl md:text-7xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
               DataMac
             </h1>
-            <p className="text-xl md:text-2xl text-slate-300 mb-8 max-w-2xl mx-auto animate-slide-in-up" style={{ animationDelay: "0.3s" }}>
-              Speed, precision, and intelligence.
+            <p className="text-xl md:text-2xl text-slate-300 mb-8 max-w-2xl mx-auto">
+              Speed & Precision
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-           
-              <button
-                onClick={() => router.push("/leaderboard")}
-                className="px-7 py-4 bg-slate-800 hover:bg-slate-700 rounded-xl font-semibold text-lg transition-all duration-200 border border-slate-600 hover:border-slate-500 animate-zoom-in hover-pulse-glow"
-                style={{ animationDelay: "0.8s" }}
-              >
-                <span className="flex items-center gap-2">
-                  <span className="animate-sparkle">🏆</span>
-                   Leaderboard
-                </span>
-              </button>
-              {user && (
-                <button
-                  onClick={() => router.push("/dashboard")}
-                  className="px-8 py-4 bg-slate-700 hover:bg-slate-600 rounded-xl font-semibold text-lg transition-all duration-200 border border-slate-500 hover:border-slate-400 flex items-center justify-center gap-2 animate-zoom-in hover-float"
-                  style={{ animationDelay: "1s" }}
-                >
-                  <svg className="w-5 h-5 animate-rotate-in" style={{ animationDelay: "1.2s" }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  Dashboard
-                </button>
+          </div>
+
+          {/* Benchmark Leaderboard */}
+          {leaderboard.length > 0 && (
+            <div className="mb-8">
+              {/* Histogram */}
+              <div className="mb-6">
+                <ScoreHistogram scores={leaderboard.map(l => l.highScore)} userScore={user ? leaderboard.find(l => l.user_id === user.id)?.highScore : null} />
+              </div>
+
+              {/* User rank info */}
+              {user && userRank !== null && userPercentile !== null && (
+                <div className="text-center">
+                  <p className="text-slate-300 text-sm">
+                    You rank <span className="font-semibold text-blue-400">#{userRank}</span> out of {leaderboard.length} players
+                    <span className="text-slate-400 mx-2">•</span>
+                    Better than <span className="font-semibold text-blue-400">{userPercentile.toFixed(1)}%</span> of players
+                  </p>
+                </div>
               )}
             </div>
-          </div>
-
-          {/* Features grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 hover:border-blue-500/50 transition-all duration-200 animate-slide-in-left hover-bounce group" style={{ animationDelay: "0.2s" }}>
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:animate-morph">
-                <span className="text-2xl animate-pulse">➕</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 group-hover:animate-shake">Addition</h3>
-              <p className="text-slate-400 text-sm">Master basic arithmetic with timed challenges</p>
-            </div>
-            
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 hover:border-red-500/50 transition-all duration-200 animate-slide-in-up hover-bounce group" style={{ animationDelay: "0.4s" }}>
-              <div className="w-12 h-12 bg-red-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:animate-morph">
-                <span className="text-2xl animate-pulse">➖</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 group-hover:animate-shake">Subtraction</h3>
-              <p className="text-slate-400 text-sm">Build confidence with subtraction problems</p>
-            </div>
-            
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 hover:border-green-500/50 transition-all duration-200 animate-slide-in-down hover-bounce group" style={{ animationDelay: "0.6s" }}>
-              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:animate-morph">
-                <span className="text-2xl animate-pulse">✖️</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 group-hover:animate-shake">Multiplication</h3>
-              <p className="text-slate-400 text-sm">Speed up your multiplication skills</p>
-            </div>
-            
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-6 border border-slate-700 hover:border-purple-500/50 transition-all duration-200 animate-slide-in-right hover-bounce group" style={{ animationDelay: "0.8s" }}>
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4 group-hover:animate-morph">
-                <span className="text-2xl animate-pulse">➗</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2 group-hover:animate-shake">Division</h3>
-              <p className="text-slate-400 text-sm">Tackle complex division challenges</p>
-            </div>
-          </div>
-
-          {/* Stats section */}
-          <div className="bg-slate-800/30 backdrop-blur-sm rounded-2xl p-8 border border-slate-700 animate-scale-in" style={{ animationDelay: "1.2s" }}>
-            <div className="grid md:grid-cols-3 gap-8 text-center">
-              <div className="animate-zoom-in hover-pulse-glow" style={{ animationDelay: "1.4s" }}>
-                <div className="text-3xl font-bold text-blue-400 mb-2 animate-pulse">2 min</div>
-                <div className="text-slate-400">Session Duration</div>
-              </div>
-              <div className="animate-zoom-in hover-pulse-glow" style={{ animationDelay: "1.6s" }}>
-                <div className="text-3xl font-bold text-purple-400 mb-2 animate-pulse">Voice</div>
-                <div className="text-slate-400">Recognition</div>
-              </div>
-              <div className="animate-zoom-in hover-pulse-glow" style={{ animationDelay: "1.8s" }}>
-                <div className="text-3xl font-bold text-cyan-400 mb-2 animate-pulse">Real-time</div>
-                <div className="text-slate-400">Progress Tracking</div>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Start Game Button */}
-          <div className="text-center mt-8">
+          <div className="text-center mb-8">
             <button
               onClick={startGame}
-              className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl animate-zoom-in hover-bounce"
-              style={{ animationDelay: "2s" }}
+              className="px-10 py-4 bg-blue-500 hover:bg-blue-600 rounded-xl font-semibold text-lg transition-colors shadow-md hover:shadow-lg text-white"
             >
-              <span className="flex items-center gap-2">
-                <span className="animate-pulse">🎮</span>
-                Start Game
-              </span>
+              Start Game
             </button>
+          </div>
+
+          {/* Navigation buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => router.push("/leaderboard")}
+              className="px-6 py-2 text-slate-300 hover:text-white text-sm transition-colors"
+            >
+              Leaderboard
+            </button>
+            {user && (
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="px-6 py-2 text-slate-300 hover:text-white text-sm transition-colors"
+              >
+                Dashboard
+              </button>
+            )}
           </div>
         </div>
       </div>
