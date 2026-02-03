@@ -90,20 +90,22 @@ const LineChart = ({ data }: { data: { date: string; score: number }[] }) => {
 
         {/* Y-axis labels */}
         {[0, 1, 2, 3, 4].map((i) => {
-          const scoreValue = minScore + (scoreRange * i) / 4;
+          // Reverse the order: maxScore at top (i=0), minScore at bottom (i=4)
+          const scoreValue = maxScore - (scoreRange * i) / 4;
+          const yPosition = padding + (i * graphHeight) / 4;
           return (
             <g key={i}>
               <line
                 x1={padding}
-                y1={padding + (i * graphHeight) / 4}
+                y1={yPosition}
                 x2={padding - 5}
-                y2={padding + (i * graphHeight) / 4}
+                y2={yPosition}
                 stroke="#6b7280"
                 strokeWidth="1"
               />
               <text
                 x={padding - 10}
-                y={padding + (i * graphHeight) / 4 + 4}
+                y={yPosition + 4}
                 textAnchor="end"
                 className="text-xs fill-slate-400"
               >
