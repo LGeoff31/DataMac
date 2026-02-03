@@ -455,11 +455,28 @@ export default function Game() {
         </div>
       </div>
 
+      {/* Game Stats - separate section below header */}
+      {gameActive && (
+        <div className="border-slate-700">
+          <div className="container mx-auto px-6 py-6">
+            <div className="flex justify-center items-center space-x-4">
+              <div className="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 rounded-lg px-4 py-2 border border-slate-600 transition-colors">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-semibold text-red-400">Time: {timeLeft}s</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 rounded-lg px-4 py-2 border border-slate-600 transition-colors">
+                <span className="text-sm font-semibold text-blue-400">Score: {score}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main game area */}
-      <div className="container mx-auto px-6 py-8">
-        <div className="max-w-2xl mx-auto">
+      <div className="container mx-auto px-6 py-8 min-h-[calc(100vh-80px)] flex items-center justify-center">
+        <div className="max-w-2xl w-full">
           {/* Voice controls */}
-          <div className="mb-8 animate-slide-in-down">
+          {/* <div className="mb-8 animate-slide-in-down">
             <div className="flex items-center justify-center space-x-4">
               <button
                 onClick={toggleVoiceRecognition}
@@ -491,20 +508,7 @@ export default function Game() {
                 : "Click the microphone to enable voice recognition"
               }
             </p>
-          </div>
-
-          {/* Game Stats */}
-          {gameActive && (
-            <div className="flex justify-center items-center space-x-6 mb-8 animate-slide-in-up" style={{ animationDelay: "0.5s" }}>
-              <div className="flex items-center space-x-2 bg-slate-800/50 backdrop-blur-sm rounded-xl px-6 py-3 border border-slate-700 hover:border-red-500/50 transition-all duration-200 group">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse group-hover:animate-bounce"></div>
-                <span className="text-lg font-bold text-red-400">Time: {timeLeft}s</span>
-              </div>
-              <div className="flex items-center space-x-2 bg-slate-800/50 backdrop-blur-sm rounded-xl px-6 py-3 border border-slate-700 hover:border-blue-500/50 transition-all duration-200 group">
-                <span className="text-lg font-bold text-blue-400">Score: {score}</span>
-              </div>
-            </div>
-          )}
+          </div> */}
 
           {/* Game content */}
           {gameActive && currentProblem ? (
